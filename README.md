@@ -1,23 +1,23 @@
-# Allegro AI Trains events
+# ClearML events
 
-This repository holds various examples and sample code presented in events, meetups etc.
+This repository holds various examples and sample code presented in events, meetups, video tutorials etc.
 
 ### What is this repository for?
 
-* Allegro Trains use cases & examples
+* ClearML use cases & examples
 
 ### How do I get set up?
 
-* Deploy the [Trains Server](https://github.com/allegroai/trains-server)
-* Install [Trains](https://github.com/allegroai/trains)
-* Configure ([How To](https://allegro.ai/docs/deploying_trains/trains_deploy_overview))
-* Optional: launch workers using the [Trains Agent](https://github.com/allegroai/trains-agent)
+* Sign up at [clear.ml](https://clear.ml)
+* Install python package + Star on github [ClearML](https://github.com/allegroai/clearml)
+* Configre + Get Started [Getting Started](https://allegro.ai/clearml/docs/docs/getting_started/getting_started_clearml_hosted_service.html)
+* Optional: launch workers using the [ClearML Agent](https://github.com/allegroai/clearml-agent)
 
 ### Contribution guidelines
 
-* If you found a bug or you feel a usable use case is missing, feel free to [create a PR](https://github.com/allegroai/trains-events/pulls)
+* If you found a bug or you feel a usable use case is missing, feel free to [create a PR](https://github.com/allegroai/events/pulls)
 
 ### Who do I talk to?
 
-* Questions and requests, please open an [issue](https://github.com/allegroai/trains-events/issues)
-* Discussion are welcome on our Slack Channel [https://allegroai-trains.slack.com/](https://join.slack.com/t/allegroai-trains/shared_invite/enQtOTQyMTI1MzQxMzE4LTY5NTUxOTY1NmQ1MzQ5MjRhMGRhZmM4ODE5NTNjMTg2NTBlZGQzZGVkMWU3ZDg1MGE1MjQxNDEzMWU2NmVjZmY)
+* Questions and requests, please open an [issue](https://github.com/allegroai/events/issues)
+* Discussion are welcome on our Slack Channel (easy join from within the clear.ml app!)
