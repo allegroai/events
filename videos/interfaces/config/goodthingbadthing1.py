@@ -59,20 +59,10 @@ parser.add_argument('--debug', type=boolean_string, default=False,
 
 if __name__ == "__main__":
     # this will create "ARGS" in the UI
-    task = Task.init(project_name='config_example',
-                     task_name='config_smell',
-                     reuse_last_task_id=False)
+    task = Task.init(project_name='GOOD THING BAD THING',
+                     task_name='good thing bad thing 1')
 
-    mixed_types_args = parser.parse_args()
-
-    experimental_feature_config = dict(
-        is_activated=IS_ACTIVATED,
-        thresh=THRESH,
-        column=COLUMN,
-    )
-    task.connect_configuration(experimental_feature_config,
-                               name='my new feature',
-                               description='this controls feature X, TBD')
+    args = parser.parse_args()
 
     # random data
     data = pdutil.testing.makeDataFrame()
@@ -80,4 +70,7 @@ if __name__ == "__main__":
     data = experimental_new_feature(data)
     data.dropna(inplace=True)
 
+    ...
+    # actual experiment...
+    ...
     task.close()
