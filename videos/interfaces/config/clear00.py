@@ -56,8 +56,12 @@ if __name__ == "__main__":
                      task_name='too many configs',)
 
     args = parser.parse_args()
-    my_config = task.connect_configuration('hyperparameters.json', 'json')
-    my_feature_config = task.connect(MyFeatureConfig, 'snore')
+
+    my_config = task.connect_configuration('hyperparameters.json',
+        name='json',
+        description='devops stuff')
+
+    my_feature_config = task.connect(MyFeatureConfig, '/feature:words')
 
     # need to load the json
     cfg = json.load(open(my_config,'rt'))
