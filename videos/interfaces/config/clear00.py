@@ -57,9 +57,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     my_config = task.connect_configuration('hyperparameters.json', 'json')
-    cfg = json.load(open(my_config,'rt'))
-    my_feature_config: MyFeatureConfig = task.connect(MyFeatureConfig, 'snore')
+    my_feature_config_dict = task.connect(MyFeatureConfig, 'snore')
 
+    cfg = json.load(open(my_config,'rt'))
+    my_feature_config: MyFeatureConfig = my_feature_config_dict
     print(cfg)
     print(my_feature_config.word_size)
     print(args)
