@@ -1,0 +1,13 @@
+{
+"train" : {"ContentType":  "trainingContentType",
+           "TrainingInputMode": "File",
+           "S3DistributionType": "FullyReplicated",
+           "RecordWrapperType": "None"},
+"evaluation" : {"ContentType":  "evalContentType",
+                "TrainingInputMode": "File",
+                "S3DistributionType": "FullyReplicated",
+                "RecordWrapperType": "None"},
+"validation" : {"TrainingInputMode": "File",
+                "S3DistributionType": "FullyReplicated",
+                "RecordWrapperType": "None"}
+}

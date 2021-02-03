@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+import json
+
 from clearml import Task
 from argparse import ArgumentParser
 
@@ -25,37 +28,41 @@ parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--optim', type=str, default='adamw', help='select optimizer for training, '
                                                                'suggest using \'admaw\' until the'
                                                                ' very final stage then switch to \'sgd\'')
-parser2 = ArgumentParser('more options')
-parser2.add_argument('--num_epochs', type=int, default=500)
-parser2.add_argument('--val_interval', type=int, default=1, help='Number of epoches between valing phases')
-parser2.add_argument('--save_interval', type=int, default=500, help='Number of steps between saving')
+parser.add_argument('--num_epochs', type=int, default=500)
+parser.add_argument('--val_interval', type=int, default=1, help='Number of epoches between valing phases')
+parser.add_argument('--save_interval', type=int, default=500, help='Number of steps between saving')
 
 parser.add_argument('--es_min_delta', type=float, default=0.0,
                     help='Early stopping\'s parameter: minimum change loss to qualify as an improvement')
 parser.add_argument('--es_patience', type=int, default=0,
                     help='Early stopping\'s parameter: number of epochs with no improvement after which training will be stopped. Set to 0 to disable this technique.')
 
-parser3 = ArgumentParser('file options')
-parser3.add_argument('-w', '--load_weights', type=str, default=None,
+parser.add_argument('-w', '--load_weights', type=str, default=None,
                     help='whether to load weights from a checkpoint, set None to initialize, set \'last\' to load last checkpoint')
-parser3.add_argument('-p', '--project', type=str, default='coco', help='project file that contains parameters')
-parser3.add_argument('-c', '--compound_coef', type=int, default=0, help='coefficients of efficientdet')
-parser3.add_argument('-n', '--num_workers', type=int, default=12, help='num_workers of dataloader')
+parser.add_argument('-p', '--project', type=str, default='coco', help='project file that contains parameters')
+parser.add_argument('-c', '--compound_coef', type=int, default=0, help='coefficients of efficientdet')
+parser.add_argument('-n', '--num_workers', type=int, default=12, help='num_workers of dataloader')
+
+@dataclass
+class MyFeatureConfig():
+    """Config for my new feature"""
+    # the word size
+    word_size: int = 128
+
 
 if __name__ == "__main__":
     # this will create "ARGS" in the UI
-    task = Task.init(project_name='CLEARML AS GLASS',
-                     task_name='too many options 2',
-                     auto_connect_arg_parser=False,
-                     )
+    task = Task.init(project_name='CLEAR00',
+                     task_name='too many configs',)
 
     args = parser.parse_args()
-    arg2 = parser2.parse_args()
-    arg3 = parser3.parse_args()
-    task.connect(args, 'main')
-    task.connect(arg2, 'more')
-    task.connect(arg3, 'snore')
+    my_config = task.connect_configuration('hyperparameters.json', 'json')
+    cfg = json.load(open(my_config,'rt'))
+    my_feature_config: MyFeatureConfig = task.connect(MyFeatureConfig, 'snore')
 
+    print(cfg)
+    print(my_feature_config.word_size)
+    print(args)
 
     ...
     # actual experiment...
