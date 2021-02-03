@@ -57,10 +57,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     my_config = task.connect_configuration('hyperparameters.json', 'json')
-    my_feature_config_dict = task.connect(MyFeatureConfig, 'snore')
+    my_feature_config = task.connect(MyFeatureConfig, 'snore')
 
+    # need to load the json
     cfg = json.load(open(my_config,'rt'))
-    my_feature_config: MyFeatureConfig = my_feature_config_dict
+    # want a dataclass
+    my_feature_config = MyFeatureConfig(**my_feature_config)
+
     print(cfg)
     print(my_feature_config.word_size)
     print(args)
@@ -68,4 +71,9 @@ if __name__ == "__main__":
     ...
     # actual experiment...
     ...
+    #
+    task.set_user_properties(
+        TUrtle='do not touch',
+        device='cloud007'
+    )
     task.close()
