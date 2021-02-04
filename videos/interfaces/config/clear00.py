@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
     my_feature_config = task.connect(MyFeatureConfig, '/feature:words')
 
+
     # need to load the json
     cfg = json.load(open(my_config,'rt'))
     # want a dataclass
