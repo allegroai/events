@@ -6,3 +6,4 @@ pandas
 tqdm
 sklearn
 efficientnet_pytorch
+dataclasses

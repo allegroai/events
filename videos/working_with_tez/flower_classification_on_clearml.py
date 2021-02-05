@@ -4,6 +4,8 @@ import argparse
 import os
 
 import glob
+from dataclasses import dataclass
+
 import albumentations
 import pandas as pd
 import tez
@@ -15,8 +17,10 @@ from tez.callbacks import EarlyStopping
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
 
-from clearml import Task
+from clearml import Task, Dataset
 
+#temporary - we are going to remove this later
+DATASET_ID = '86895530658c47a4918bda4f0d92c3e8'
 INPUT_PATH = "../../input/"
 MODEL_PATH = "../../models/"
 MODEL_NAME = os.path.basename(__file__)[:-3]
@@ -24,6 +28,20 @@ TRAIN_BATCH_SIZE = 32
 VALID_BATCH_SIZE = 32
 IMAGE_SIZE = 192
 EPOCHS = 20
+
+@dataclass
+class FlowerTrainingConfig:
+    # we are going to get rid of this
+    input_path: str = "../../input/"
+    # we are going to get rid of this
+    model_path: str = "../../model/"
+    # currently base name is fixed
+    model_name: str = MODEL_NAME
+    train_batch_size: int = 32
+    valid_batch_size: int = 32
+    # can only be 192, 224, 331, 512 if using the garden dataset
+    image_size: int = 192 # this should be an enum!
+    num_epochs: int = 20
 
 
 class FlowerModel(tez.Model):
@@ -64,6 +82,7 @@ if __name__ == "__main__":
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+
     train_aug = albumentations.Compose(
         [
             albumentations.Transpose(p=0.5),
@@ -98,16 +117,18 @@ if __name__ == "__main__":
         p=1.0,
     )
 
+    dataset_folder = Dataset.get(dataset_id=DATASET_ID).get_local_copy()
+
     train_image_paths = glob.glob(
         os.path.join(
-            INPUT_PATH, f"jpeg-{IMAGE_SIZE}x{IMAGE_SIZE}", "train", "**", "*.jpeg"
+            dataset_folder, f"jpeg-{IMAGE_SIZE}x{IMAGE_SIZE}", "train", "**", "*.jpeg"
         ),
         recursive=True,
     )
 
     valid_image_paths = glob.glob(
         os.path.join(
-            INPUT_PATH, f"jpeg-{IMAGE_SIZE}x{IMAGE_SIZE}", "val", "**", "*.jpeg"
+            dataset_folder, f"jpeg-{IMAGE_SIZE}x{IMAGE_SIZE}", "val", "**", "*.jpeg"
         ),
         recursive=True,
     )
