@@ -53,7 +53,7 @@ class MyFeatureConfig():
 if __name__ == "__main__":
     # this will create "ARGS" in the UI
     task = Task.init(project_name='CLEAR00',
-                     task_name='too many configs',)
+                     task_name='how to config',)
 
     args = parser.parse_args()
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         name='json',
         description='devops stuff')
 
-    my_feature_config = task.connect(MyFeatureConfig, '/feature:words')
+    my_feature_config = task.connect(MyFeatureConfig, '//feature:words')
 
 
     # need to load the json
