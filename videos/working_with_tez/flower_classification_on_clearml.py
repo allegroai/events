@@ -36,6 +36,7 @@ class FlowerTrainingConfig:
     model_path: str = "models/"
     # currently base name is fixed
     model_name: str = MODEL_NAME
+    fp16mode: bool = True
     train_batch_size: int = 32
     valid_batch_size: int = 32
     # can only be 192, 224, 331, 512 if using the garden dataset
@@ -98,7 +99,8 @@ class FlowerModel(tez.Model):
 if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
-                     task_name='minimal integration')
+                     task_name='remove all hardcoding')
+
     workaround = FlowerTrainingConfig()
     dict_cfg = task.connect(workaround, 'config')
     if not isinstance(dict_cfg, dict):
@@ -200,13 +202,13 @@ if __name__ == "__main__":
     model.fit(
         train_dataset,
         valid_dataset=valid_dataset,
-        train_bs=TRAIN_BATCH_SIZE,
-        valid_bs=VALID_BATCH_SIZE,
+        train_bs=cfg.train_batch_size,
+        valid_bs=cfg.valid_batch_size,
         device=device,
-        epochs=EPOCHS,
+        epochs=cfg.num_epochs,
         callbacks=[es, tb],
         n_jobs=cfg.data_loader_n_jobs,
-        fp16=True,
+        fp16=cfg.fp16mode,
     )
 
     print("Goodbye")
