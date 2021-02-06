@@ -44,6 +44,7 @@ class FlowerTrainingConfig:
     image_size: int = 192 # this should be an enum!
     num_epochs: int = 20
     data_loader_n_jobs: int = 1
+    efficient_model_type: str = "efficientnet-b0"
 
 
 class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
@@ -52,24 +53,19 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
 
     def on_train_step_end(self, model: tez.Model):
         for metric in model.metrics["train"]:
-            self.writer.add_scalar(
-                f"train/{metric}_step", model.metrics["train"][metric], model.current_train_step
-            )
-
-    def on_valid_step_end(self, model: tez.Model):
-        for metric in model.metrics["valid"]:
-            self.writer.add_scalar(
-                f"valid/{metric}_step", model.metrics["valid"][metric], model.current_valid_step
-            )
-
+            if "step" in metric:
+                self.writer.add_scalar(
+                    f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
+                )
 
 class FlowerModel(tez.Model):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, efficentnet_model: str ="efficientnet-b0"):
         super().__init__()
 
-        self.effnet = EfficientNet.from_pretrained("efficientnet-b0")
+        self.effnet = EfficientNet.from_pretrained(efficentnet_model)
         self.dropout = nn.Dropout(0.1)
         self.out = nn.Linear(1280, num_classes)
+        self.step_report_every_n: int = 5
 
     def monitor_metrics(self, outputs, targets):
         outputs = torch.argmax(outputs, dim=1).cpu().detach().numpy()
@@ -80,6 +76,12 @@ class FlowerModel(tez.Model):
     def fetch_optimizer(self):
         opt = torch.optim.Adam(self.parameters(), lr=1e-4)
         return opt
+
+    def train_one_step(self, data):
+        loss, metrics = super().train_one_step(data)
+        if (self.current_train_step % self.step_report_every_n) == 0:
+            self.metrics[self._model_state.value].update({"step_loss": loss.item()})
+        return loss, metrics
 
     def forward(self, image, targets=None):
         batch_size, _, _, _ = image.shape
@@ -163,6 +165,8 @@ if __name__ == "__main__":
     lbl_enc = preprocessing.LabelEncoder()
     train_targets = lbl_enc.fit_transform(train_targets)
     valid_targets = lbl_enc.transform(valid_targets)
+
+    task.set_model_label_enumeration({lbl: n for n, lbl in enumerate(lbl_enc.classes_)})
 
     train_dataset = ImageDataset(
         image_paths=train_image_paths,

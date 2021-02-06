@@ -23,3 +23,6 @@ data/
 runs/
 model_*
 model*.pkl
+
+#logs
+.logs/
