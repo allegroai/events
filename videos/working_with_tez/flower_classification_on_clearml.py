@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
 from sklearn import metrics, model_selection, preprocessing
-from tez.callbacks import EarlyStopping
+from tez.callbacks import EarlyStopping, TensorBoardLogger
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
 
@@ -82,6 +82,8 @@ if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
                      task_name='minimal integration')
+
+    cfg = task.connect(FlowerTrainingConfig,'config')
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -164,6 +166,7 @@ if __name__ == "__main__":
     from pathlib import Path
     Path.mkdir(Path(MODEL_PATH), exist_ok=True)
 
+    tb = TensorBoardLogger()
 
     es = EarlyStopping(
         monitor="valid_loss",
@@ -178,8 +181,8 @@ if __name__ == "__main__":
         valid_bs=VALID_BATCH_SIZE,
         device=device,
         epochs=EPOCHS,
-        callbacks=[es],
-        n_jobs=1,
+        callbacks=[es, tb],
+        n_jobs=cfg.get("data_loader_n_jobs",1),
         fp16=True,
     )
 
