@@ -48,7 +48,7 @@ class FlowerTrainingConfig:
 
 class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
     def __init__(self, log_dir=".logs/"):
-        super().__init__(self, log_dir)
+        super().__init__(log_dir)
 
     def on_train_step_end(self, model: tez.Model):
         for metric in model.metrics["train"]:
