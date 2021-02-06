@@ -1,6 +1,5 @@
 # For dataset, go to: https://www.kaggle.com/msheriey/104-flowers-garden-of-eden
 # Update INPUT_PATH and MODEL_PATH
-import argparse
 import os
 
 import glob
@@ -8,12 +7,11 @@ import warnings
 from dataclasses import dataclass
 
 import albumentations
-import pandas as pd
 import tez
 import torch
 import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
-from sklearn import metrics, model_selection, preprocessing
+from sklearn import metrics, preprocessing
 from tez.callbacks import EarlyStopping
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
@@ -101,8 +99,9 @@ if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
                      task_name='minimal integration')
-
-    dict_cfg = task.connect(FlowerTrainingConfig,'config')
+    workaround = FlowerTrainingConfig()
+    dict_cfg = task.connect(workaround, 'config')
+    print(f"dict cfg is {type(dict_cfg)} :: {dict_cfg}")
     cfg = FlowerTrainingConfig(**dict_cfg)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
