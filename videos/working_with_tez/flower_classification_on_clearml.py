@@ -101,7 +101,7 @@ if __name__ == "__main__":
                      task_name='minimal integration')
 
     dict_cfg = task.connect(FlowerTrainingConfig,'config')
-    cfg: FlowerTrainingConfig = dict_cfg
+    cfg = FlowerTrainingConfig(**dict_cfg)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
