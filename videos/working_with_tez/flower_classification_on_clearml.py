@@ -43,6 +43,7 @@ class FlowerTrainingConfig:
     # can only be 192, 224, 331, 512 if using the garden dataset
     image_size: int = 192 # this should be an enum!
     num_epochs: int = 20
+    data_loader_n_jobs: int = 1
 
 
 class FlowerModel(tez.Model):
@@ -178,6 +179,7 @@ if __name__ == "__main__":
         device=device,
         epochs=EPOCHS,
         callbacks=[es],
+        n_jobs=1,
         fp16=True,
     )
 
