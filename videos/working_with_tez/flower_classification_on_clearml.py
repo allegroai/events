@@ -85,7 +85,7 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if device == "cpu":
-        warnings.filterwarnings("ignore", module=torch.cuda.amp.autocast)
+        warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
 
     train_aug = albumentations.Compose(
         [
@@ -160,7 +160,8 @@ if __name__ == "__main__":
 
     # temporary, model pathname here, and make sure directory exists
     model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    os.mkdir(MODEL_PATH)
+    from pathlib import Path
+    Path.mkdir(Path(MODEL_PATH), exist_ok=True)
 
 
     es = EarlyStopping(
