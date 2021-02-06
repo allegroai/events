@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
 from sklearn import metrics, model_selection, preprocessing
-from tez.callbacks import EarlyStopping, TensorBoardLogger
+from tez.callbacks import EarlyStopping
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
 
@@ -44,6 +44,23 @@ class FlowerTrainingConfig:
     image_size: int = 192 # this should be an enum!
     num_epochs: int = 20
     data_loader_n_jobs: int = 1
+
+
+class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
+    def __init__(self, log_dir=".logs/"):
+        super().__init__(self, log_dir)
+
+    def on_train_step_end(self, model: tez.Model):
+        for metric in model.metrics["train"]:
+            self.writer.add_scalar(
+                f"train/{metric}_step", model.metrics["train"][metric], model.current_train_step
+            )
+
+    def on_valid_step_end(self, model: tez.Model):
+        for metric in model.metrics["valid"]:
+            self.writer.add_scalar(
+                f"valid/{metric}_step", model.metrics["valid"][metric], model.current_valid_step
+            )
 
 
 class FlowerModel(tez.Model):
@@ -83,10 +100,10 @@ if __name__ == "__main__":
     task = Task.init(project_name='tez Flower Detection',
                      task_name='minimal integration')
 
-    cfg = task.connect(FlowerTrainingConfig,'config')
+    dict_cfg = task.connect(FlowerTrainingConfig,'config')
+    cfg: FlowerTrainingConfig = dict_cfg
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
     if device == "cpu":
         warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
 
@@ -166,7 +183,7 @@ if __name__ == "__main__":
     from pathlib import Path
     Path.mkdir(Path(MODEL_PATH), exist_ok=True)
 
-    tb = TensorBoardLogger()
+    tb = CustomTensorBoardLogger()
 
     es = EarlyStopping(
         monitor="valid_loss",
@@ -182,7 +199,7 @@ if __name__ == "__main__":
         device=device,
         epochs=EPOCHS,
         callbacks=[es, tb],
-        n_jobs=cfg.get("data_loader_n_jobs",1),
+        n_jobs=cfg.data_loader_n_jobs,
         fp16=True,
     )
 
