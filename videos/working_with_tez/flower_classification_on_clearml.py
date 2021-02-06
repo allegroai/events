@@ -101,8 +101,11 @@ if __name__ == "__main__":
                      task_name='minimal integration')
     workaround = FlowerTrainingConfig()
     dict_cfg = task.connect(workaround, 'config')
-    print(f"dict cfg is {type(dict_cfg)} :: {dict_cfg}")
-    cfg = FlowerTrainingConfig(**dict_cfg)
+    if not isinstance(dict_cfg, dict):
+        print(f"dict cfg is {type(dict_cfg)} :: {dict_cfg}")
+        cfg = dict_cfg
+    else:
+        cfg = FlowerTrainingConfig(**dict_cfg)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
