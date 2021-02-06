@@ -4,6 +4,7 @@ import argparse
 import os
 
 import glob
+import warnings
 from dataclasses import dataclass
 
 import albumentations
@@ -22,7 +23,7 @@ from clearml import Task, Dataset
 #temporary - we are going to remove this later
 DATASET_ID = '86895530658c47a4918bda4f0d92c3e8'
 INPUT_PATH = "../../input/"
-MODEL_PATH = "../../models/"
+MODEL_PATH = "models/"
 MODEL_NAME = os.path.basename(__file__)[:-3]
 TRAIN_BATCH_SIZE = 32
 VALID_BATCH_SIZE = 32
@@ -34,7 +35,7 @@ class FlowerTrainingConfig:
     # we are going to get rid of this
     input_path: str = "../../input/"
     # we are going to get rid of this
-    model_path: str = "../../model/"
+    model_path: str = "models/"
     # currently base name is fixed
     model_name: str = MODEL_NAME
     train_batch_size: int = 32
@@ -78,10 +79,13 @@ class FlowerModel(tez.Model):
 
 if __name__ == "__main__":
 
-    task = Task.init(project_name='tez Flower Detection',task_name='minimal integration')
+    task = Task.init(project_name='tez Flower Detection',
+                     task_name='minimal integration')
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    if device == "cpu":
+        warnings.filterwarnings("ignore", module=torch.cuda.amp.autocast)
 
     train_aug = albumentations.Compose(
         [
@@ -154,9 +158,14 @@ if __name__ == "__main__":
 
     model = FlowerModel(num_classes=len(lbl_enc.classes_))
 
+    # temporary, model pathname here, and make sure directory exists
+    model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
+    os.mkdir(MODEL_PATH)
+
+
     es = EarlyStopping(
         monitor="valid_loss",
-        model_path=os.path.join(MODEL_PATH, MODEL_NAME + ".bin"),
+        model_path=model_path,
         patience=3,
         mode="min",
     )
@@ -170,3 +179,5 @@ if __name__ == "__main__":
         callbacks=[es],
         fp16=True,
     )
+
+    print("Goodbye")
