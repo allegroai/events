@@ -44,6 +44,7 @@ class FlowerTrainingConfig:
     num_epochs: int = 20
     data_loader_n_jobs: int = 1
     efficient_model_type: str = "efficientnet-b0"
+    early_stopping_patience: int = 3
 
 
 class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
@@ -96,6 +97,81 @@ class FlowerModel(tez.Model):
         return outputs, 0, {}
 
 
+@dataclass
+class AugConfig():
+    transpose: float = 0.5
+    horizontal_flip: float = 0.5
+    vertical_flip: float = 0.5
+    shift_scale_rotate: float = 0.5
+    hue_sat_val: float = 0.5
+    hue_shift_limit: int = 20
+    sat_shift_limit: int = 20
+    val_shift_limit: int = 20
+    random_bright_contrast: float = 0.5
+    random_bright_mag: float = 0.1
+    random_contrast_mag: float = 0.1
+
+
+def get_train_augmentations(augment_config: AugConfig=None, train_dataset_id=None):
+    augment_config = AugConfig() if augment_config is None else augment_config
+    train_aug = albumentations.Compose(
+        [
+            albumentations.Transpose(p=augment_config.transpose),
+            albumentations.HorizontalFlip(p=augment_config.horizontal_flip),
+            albumentations.VerticalFlip(p=augment_config.vertical_flip),
+            albumentations.ShiftScaleRotate(p=augment_config.shift_scale_rotate),
+            albumentations.HueSaturationValue(
+                hue_shift_limit=augment_config.hue_shift_limit,
+                sat_shift_limit=augment_config.sat_shift_limit,
+                val_shift_limit=augment_config.val_shift_limit,
+                p=augment_config.hue_sat_val,
+            ),
+            albumentations.RandomBrightnessContrast(
+                brightness_limit=(-augment_config.random_bright_mag, augment_config.random_bright_mag),
+                contrast_limit=(-augment_config.random_contrast_mag, augment_config.random_contrast_mag),
+                p=augment_config.random_bright_contrast
+            ),
+            train_based_normalize(train_dataset_id)
+        ],
+        p=1.0,
+    )
+
+
+def get_valid_augmentations(augment_config: AugConfig, train_dataset_id=None):
+    # augment_config left as an option if we will ever do TTA
+    if augment_config is not None:
+        return get_train_augmentations(augment_config=augment_config, train_dataset_id=train_dataset_id)
+    return albumentations.Compose(
+        [
+            train_based_normalize(train_dataset_id)
+        ],
+        p=1.0,
+    )
+
+
+def get_normalization_info(train_dataset_id):
+    """
+    queries the dataset for the norm info config
+    """
+    raise NotImplementedError('need to implement data preprocessing first')
+    return {}
+
+
+def train_based_normalize(train_dataset_id=None):
+    # the dataset will have a dict containing these
+    default_values = dict(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
+        max_pixel_value=255.0,
+    )
+    values = default_values.copy() if train_dataset_id is None \
+        else get_normalization_info(train_dataset_id)
+
+    default_values.update({"p": 1.0})
+    return albumentations.Normalize(**default_values)
+
+
+
 if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
@@ -106,48 +182,22 @@ if __name__ == "__main__":
     # this will not be needed soon
     if task.running_locally:
         task.connect(FlowerTrainingConfig, 'config')
+        task.connect(AugConfig, 'augmentation_config')
         cfg = FlowerTrainingConfig()
+        aug_cfg = AugConfig()
     else:
         ConfigCls: FlowerTrainingConfig = task.connect(FlowerTrainingConfig, 'config')
+        AugmentConfig: AugConfig = task.connect(AugConfig,'augmentation_config')
         cfg = ConfigCls()
+        aug_cfg = AugmentConfig()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
         warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
 
-    train_aug = albumentations.Compose(
-        [
-            albumentations.Transpose(p=0.5),
-            albumentations.HorizontalFlip(p=0.5),
-            albumentations.VerticalFlip(p=0.5),
-            albumentations.ShiftScaleRotate(p=0.5),
-            albumentations.HueSaturationValue(
-                hue_shift_limit=0.2, sat_shift_limit=0.2, val_shift_limit=0.2, p=0.5
-            ),
-            albumentations.RandomBrightnessContrast(
-                brightness_limit=(-0.1, 0.1), contrast_limit=(-0.1, 0.1), p=0.5
-            ),
-            albumentations.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-                max_pixel_value=255.0,
-                p=1.0,
-            ),
-        ],
-        p=1.0,
-    )
 
-    valid_aug = albumentations.Compose(
-        [
-            albumentations.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-                max_pixel_value=255.0,
-                p=1.0,
-            ),
-        ],
-        p=1.0,
-    )
+    train_aug = get_train_augmentations(aug_cfg, train_dataset_id=None)
+    valid_aug = get_valid_augmentations(None, train_dataset_id=None)
 
     dataset_folder = Dataset.get(dataset_id=DATASET_ID).get_local_copy()
 
@@ -198,7 +248,7 @@ if __name__ == "__main__":
     es = EarlyStopping(
         monitor="valid_loss",
         model_path=model_path,
-        patience=3,
+        patience=cfg.early_stopping_patience,
         mode="min",
     )
     model.fit(
