@@ -59,10 +59,10 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                 )
 
 class FlowerModel(tez.Model):
-    def __init__(self, num_classes, efficentnet_model: str ="efficientnet-b0"):
+    def __init__(self, num_classes, efficientnet_model: str ="efficientnet-b0"):
         super().__init__()
 
-        self.effnet = EfficientNet.from_pretrained(efficentnet_model)
+        self.effnet = EfficientNet.from_pretrained(efficientnet_model)
         self.dropout = nn.Dropout(0.1)
         self.out = nn.Linear(1280, num_classes)
         self.step_report_every_n: int = 5
