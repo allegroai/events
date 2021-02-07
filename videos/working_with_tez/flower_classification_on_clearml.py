@@ -99,15 +99,17 @@ class FlowerModel(tez.Model):
 if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
-                     task_name='remove all hardcoding')
+                     task_name='remove all hardcoding',
+                     # upload models to your free community storage
+                     output_uri=True)
 
-    workaround = FlowerTrainingConfig()
-    dict_cfg = task.connect(workaround, 'config')
-    if not isinstance(dict_cfg, dict):
-        print(f"dict cfg is {type(dict_cfg)} :: {dict_cfg}")
-        cfg = dict_cfg
+    # this will not be needed soon
+    if task.running_locally:
+        task.connect(FlowerTrainingConfig, 'config')
+        cfg = FlowerTrainingConfig()
     else:
-        cfg = FlowerTrainingConfig(**dict_cfg)
+        ConfigCls: FlowerTrainingConfig = task.connect(FlowerTrainingConfig, 'config')
+        cfg = ConfigCls()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
