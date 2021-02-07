@@ -1,7 +1,7 @@
 # For dataset, go to: https://www.kaggle.com/msheriey/104-flowers-garden-of-eden
 # Update INPUT_PATH and MODEL_PATH
 import os
-
+import tqdm  # temp
 import glob
 import warnings
 from dataclasses import dataclass
@@ -179,20 +179,14 @@ if __name__ == "__main__":
                      # upload models to your free community storage
                      output_uri=True)
 
-    # this will not be needed soon
-    if task.running_locally:
-        task.connect(FlowerTrainingConfig, 'config')
-        task.connect(AugConfig, 'augmentation_config')
-        cfg = FlowerTrainingConfig()
-        aug_cfg = AugConfig()
-    else:
-        ConfigCls: FlowerTrainingConfig = task.connect(FlowerTrainingConfig, 'config')
-        AugmentConfig: AugConfig = task.connect(AugConfig,'augmentation_config')
-        cfg = ConfigCls()
-        aug_cfg = AugmentConfig()
+    task.connect(FlowerTrainingConfig, 'config')
+    task.connect(AugConfig, 'augmentation_config')
+    cfg = FlowerTrainingConfig()
+    aug_cfg = AugConfig()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
+        warnings.warn('GPU not available!, using CPU mode')
         warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
 
 
