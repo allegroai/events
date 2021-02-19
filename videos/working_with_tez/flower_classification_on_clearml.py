@@ -167,15 +167,15 @@ def train_based_normalize(train_dataset_id=None):
     values = default_values.copy() if train_dataset_id is None \
         else get_normalization_info(train_dataset_id)
 
-    default_values.update({"p": 1.0})
-    return albumentations.Normalize(**default_values)
+    values.update({"p": 1.0})
+    return albumentations.Normalize(**values)
 
 
 
 if __name__ == "__main__":
 
     task = Task.init(project_name='tez Flower Detection',
-                     task_name='remove all hardcoding',
+                     task_name='remove all hard coding',
                      # upload models to your free community storage
                      output_uri=True)
 
