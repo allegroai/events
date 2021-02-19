@@ -201,8 +201,8 @@ if __name__ == "__main__":
         adam_lr=cfg.adam_lr)
 
     # temporary, model pathname here, and make sure directory exists
-    model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    Path(MODEL_PATH).mkdir(exist_ok=True)
+    model_path = os.path.join(cfg.model_path, cfg.model_name + ".bin")
+    Path(cfg.model_path).mkdir(exist_ok=True)
 
     tb = CustomTensorBoardLogger()
 
