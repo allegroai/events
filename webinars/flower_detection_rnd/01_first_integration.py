@@ -1,21 +1,28 @@
 # For dataset, go to: https://www.kaggle.com/msheriey/104-flowers-garden-of-eden
 # Update INPUT_PATH and MODEL_PATH
 import argparse
+from pathlib import Path
 import os
 import tqdm  # temp
 import glob
+import warnings
+from dataclasses import dataclass
+
 import albumentations
 import pandas as pd
 import tez
 import torch
 import torch.nn as nn
 from efficientnet_pytorch import EfficientNet
-from sklearn import metrics, model_selection, preprocessing
+from sklearn import metrics, preprocessing
 from tez.callbacks import EarlyStopping
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
 
-INPUT_PATH = "../../input/"
+from clearml import Task
+
+
+INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
 MODEL_PATH = "../../models/"
 MODEL_NAME = os.path.basename(__file__)[:-3]
 TRAIN_BATCH_SIZE = 32
@@ -75,6 +82,18 @@ class FlowerModel(tez.Model):
 
 
 if __name__ == "__main__":
+
+    # Track everything on ClearML Free
+    task = Task.init(project_name='R|D?R&D! Webinar 01',
+                     task_name='initial integration - tracking only',
+                     )
+
+    # Need to run on cpu only?
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cpu":
+        warnings.warn('GPU not available!, using CPU mode')
+        warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
+
     train_aug = albumentations.Compose(
         [
             albumentations.Transpose(p=0.5),
@@ -146,7 +165,6 @@ if __name__ == "__main__":
 
     # temporary, model pathname here, and make sure directory exists
     model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    from pathlib import Path
     Path.mkdir(Path(MODEL_PATH), exist_ok=True)
 
     tb = CustomTensorBoardLogger()
@@ -162,7 +180,7 @@ if __name__ == "__main__":
         valid_dataset=valid_dataset,
         train_bs=TRAIN_BATCH_SIZE,
         valid_bs=VALID_BATCH_SIZE,
-        device="cuda",
+        device=device,
         epochs=EPOCHS,
         callbacks=[es, tb],
         fp16=True,
