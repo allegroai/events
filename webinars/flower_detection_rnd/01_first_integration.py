@@ -165,7 +165,7 @@ if __name__ == "__main__":
 
     # temporary, model pathname here, and make sure directory exists
     model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    Path.mkdir(Path(MODEL_PATH), exist_ok=True)
+    Path(MODEL_PATH).mkdir(exist_ok=True)
 
     tb = CustomTensorBoardLogger()
 

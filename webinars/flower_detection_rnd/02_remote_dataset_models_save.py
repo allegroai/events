@@ -21,8 +21,9 @@ from torch.nn import functional as F
 
 from clearml import Task, Dataset
 
-#temporary - "someone uploaded the Dataset alread"
+# temporary - "someone uploaded the Dataset alread"
 DATASET_ID = '86895530658c47a4918bda4f0d92c3e8'
+# not used anymore, dataset is downloaded
 INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
 MODEL_PATH = "../../models/"
 MODEL_NAME = os.path.basename(__file__)[:-3]
@@ -155,7 +156,9 @@ if __name__ == "__main__":
     valid_targets = lbl_enc.transform(valid_targets)
 
     # track model labels
-    task.set_model_label_enumeration({lbl: n for n, lbl in enumerate(lbl_enc.classes_)})
+    task.set_model_label_enumeration({
+        lbl: n for n, lbl in enumerate(lbl_enc.classes_)
+    })
 
     train_dataset = ImageDataset(
         image_paths=train_image_paths,
@@ -173,7 +176,7 @@ if __name__ == "__main__":
 
     # temporary, model pathname here, and make sure directory exists
     model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    Path.mkdir(Path(MODEL_PATH), exist_ok=True)
+    Path(MODEL_PATH).mkdir(exist_ok=True)
 
     tb = CustomTensorBoardLogger()
 
