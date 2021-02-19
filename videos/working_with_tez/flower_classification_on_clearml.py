@@ -114,7 +114,7 @@ class AugConfig():
 
 def get_train_augmentations(augment_config: AugConfig=None, train_dataset_id=None):
     augment_config = AugConfig() if augment_config is None else augment_config
-    train_aug = albumentations.Compose(
+    return albumentations.Compose(
         [
             albumentations.Transpose(p=augment_config.transpose),
             albumentations.HorizontalFlip(p=augment_config.horizontal_flip),
