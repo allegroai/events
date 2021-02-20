@@ -186,17 +186,16 @@ if __name__ == "__main__":
                      output_uri=True, # auto save everything to Clearml Free
                      )
 
-    task.connect(FlowerTrainingConfig, 'config')
-    task.connect(AugConfig, 'augmentation_config')
     cfg = FlowerTrainingConfig()
     aug_cfg = AugConfig()
+    task.connect(cfg, 'config')
+    task.connect(aug_cfg, 'augmentation_config')
 
     # Need to run on cpu only?
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
         warnings.warn('GPU not available!, using CPU mode')
         warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
-
 
     train_aug = get_train_augmentations(aug_cfg, train_dataset_id=None)
     valid_aug = get_valid_augmentations(None, train_dataset_id=None)
