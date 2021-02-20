@@ -112,8 +112,9 @@ if __name__ == "__main__":
                      output_uri=True, # auto save everything to Clearml Free
                      )
 
-    task.connect(FlowerTrainingConfig, 'config')
+    # task.connect(FlowerTrainingConfig, 'config')
     cfg = FlowerTrainingConfig()
+    task.connect(cfg, 'config')
 
     # Need to run on cpu only?
     device = "cuda" if torch.cuda.is_available() else "cpu"
