@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
 
     # prepare an artifact for upload
-    results = {str(image_size): {'train': '', 'val': '', 'norm_info': {}}
+    results = {image_size: {'train': '', 'val': '', 'norm_info': {}}
                for image_size in cfg.image_size_values}
 
     for image_size in cfg.image_size_values:
@@ -122,6 +122,7 @@ if __name__ == '__main__':
 
         # relative folder
         rel_folder = cfg.folder_name_prefix + f"{image_size}x{image_size}"
+        rel_folder = Path(rel_folder)
         # actual files
         path_for_image_size =\
             Path(input_dataset_folder) / rel_folder
@@ -138,12 +139,16 @@ if __name__ == '__main__':
             # remove other sizes
             for other_folder_rel in all_subfolders_rel:
                 if other_folder_rel != rel_folder:
-                    new_dataset.remove_files(str(other_folder_rel))
+                    new_dataset.remove_files(str(other_folder_rel), verbose=True)
             # remove other stages
             for not_stage in ['train', 'val', 'test']:
                 if not_stage != stage:
-                    new_dataset.remove_files(str(rel_folder/stage))
+                    new_dataset.remove_files(str(rel_folder/not_stage), verbose=True)
 
+            # upload should be no-op in this case
+            rmed = new_dataset.list_removed_files(cfg.input_dataset_id)
+            print(f"pruned {len(rmed)} files from parent datatset")
+            new_dataset.upload(show_progress=True, verbose=True)
             new_dataset.finalize()
             new_dataset.publish()
 

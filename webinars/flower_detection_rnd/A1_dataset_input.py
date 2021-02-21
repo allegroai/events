@@ -29,7 +29,7 @@ class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
     # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192
-    dataset_metadata_id: str = "677645c9afd843ecb40f77ca119eb85a"
+    dataset_metadata_id: str = "cb6cec48b9f54f74859df626fa9d0e20"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # just in case you need to access models locally
     model_path: str = "models/"
@@ -39,6 +39,8 @@ class FlowerTrainingConfig:
     num_epochs: int = 20
     data_loader_n_jobs: int = 1
     early_stopping_patience: int = 3
+    # relevant for executing remotely
+    cloud_queue: str = 'colab'
 
 @dataclass
 class ModelConfig:
@@ -199,6 +201,8 @@ if __name__ == "__main__":
     task.set_model_config(config_dict=asdict(ModelConfig()))
     model_params = ModelConfig(**task.get_model_config_dict())
 
+    if len(cfg.cloud_queue):
+        task.execute_remotely(cfg.cloud_queue)
     # get artifact
     datasets_metadata_task = Task.get_task(cfg.dataset_metadata_id)
     artifact = datasets_metadata_task.artifacts[cfg.dataset_metadata_artifact_name]
