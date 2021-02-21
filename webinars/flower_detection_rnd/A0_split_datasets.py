@@ -1,9 +1,10 @@
 from clearml import Task, Dataset
 from dataclasses import dataclass
 from pathlib import Path
+import numpy as np
+from PIL import Image
 
 
-@dataclass
 class DataSplitConf:
     # already exists - "someone already uploaded via cli"
     input_dataset_id: str = "86895530658c47a4918bda4f0d92c3e8"
@@ -20,19 +21,33 @@ def extract_relevant_filenames(dataset_path, im_size, folder_name_pattern=None):
     folder_name_pattern = f"jpeg-{im_size}x{im_size}" if\
         folder_name_pattern is None else folder_name_pattern
     train_image_paths = glob.glob(
-        os.path.join(
-            dataset_path, folder_name_pattern, "train", "**", "*.jpeg"
-        ),
+        os.path.join(dataset_path, folder_name_pattern, "train", "**", "*.jpeg"),
         recursive=True,
     )
-
     valid_image_paths = glob.glob(
-        os.path.join(
-            dataset_path, folder_name_pattern, "val", "**", "*.jpeg"
-        ),
+        os.path.join(dataset_path, folder_name_pattern, "val", "**", "*.jpeg"),
         recursive=True,
     )
     return train_image_paths, valid_image_paths
+
+
+def gen_norm_info(over_file_folder):
+    max_value = 255.0
+    pixel_mean = np.array([0, 0, 0], dtype=np.float32)
+    pixel_var = np.array([0, 0, 0], dtype=np.float32)
+    files = [f for f in Path(over_file_folder).glob('**/*.jp*g')]
+    n_files = len(files)
+    for image_fname in files:
+        image = Image.open(image_fname)
+        image = np.array(image)/max_value
+        pixel_mean = image.mean(axis=(0, 1))
+        pixel_var = image.var(axis=(0, 1))
+
+    return dict(
+        mean=pixel_mean/n_files,
+        std=np.sqrt(pixel_var/n_files),
+        max_pixel_value=max_value,
+    )
 
 
 if __name__ == '__main__':
@@ -52,6 +67,9 @@ if __name__ == '__main__':
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
+
+    results = {image_size: {'train': '', 'val': '', 'norm_info': {}}
+               for image_size in cfg.image_size_values}
 
     for image_size in cfg.image_size_values:
         # if dataset exists skip creating
@@ -92,6 +110,10 @@ if __name__ == '__main__':
         for stage in ['train', 'val']:  # TODO 'test'
             file_folder = path_for_image_size / stage
 
+            if stage == 'train':
+                print(f"calculating mean pixel for train dataset on {file_folder}")
+                results[image_size]['norm_info'] = gen_norm_info(file_folder)
+
             new_dataset = Dataset.create(
                 dataset_name=dataset_name+stage,
                 dataset_project=project_name,
@@ -103,4 +125,6 @@ if __name__ == '__main__':
             new_dataset.finalize()
             new_dataset.publish()
 
+            results[image_size][stage] = new_dataset.id
 
+    task.upload_artifact('metadata', results)
