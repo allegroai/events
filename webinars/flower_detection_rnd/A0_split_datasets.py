@@ -39,13 +39,16 @@ if __name__ == '__main__':
     project_name = 'R|D?R&D! Webinar 01'
     task = Task.init(
         project_name=project_name,
-        task_name='dataset split to sizes',
+        task_name='Orig dataset split to sizes',
         output_uri=True,  # auto save everything to ClearML Free
         task_type=Task.TaskTypes.data_processing
     )
 
     cfg = DataSplitConf()
     task.connect(cfg, 'dataset split config')
+
+    # Uncomment to force run remotely
+    # task.execute_remotely(queue_name='colab')
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
