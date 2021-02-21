@@ -7,7 +7,6 @@ import warnings
 from dataclasses import dataclass
 
 import albumentations
-import pandas as pd
 import tez
 import torch
 import torch.nn as nn
@@ -105,7 +104,10 @@ class FlowerModel(tez.Model):
 
 
 if __name__ == "__main__":
-
+    # force colab to get dataclasses
+    Task.add_requirements('dataclasses')
+    # override numpy version for colab
+    Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
     task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='remote control interface',
@@ -199,6 +201,7 @@ if __name__ == "__main__":
 
     model = FlowerModel(
         num_classes=len(lbl_enc.classes_),
+        efficientnet_model=cfg.efficient_model_type,
         adam_lr=cfg.adam_lr)
 
     # temporary, model pathname here, and make sure directory exists

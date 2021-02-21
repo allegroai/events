@@ -6,10 +6,8 @@ import os
 import tqdm  # temp
 import glob
 import warnings
-from dataclasses import dataclass
 
 import albumentations
-import pandas as pd
 import tez
 import torch
 import torch.nn as nn

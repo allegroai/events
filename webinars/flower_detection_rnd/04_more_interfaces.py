@@ -39,7 +39,7 @@ class FlowerTrainingConfig:
     train_batch_size: int = 32
     valid_batch_size: int = 32
     # can only be 192, 224, 311, 512 if using the garden dataset
-    image_size: int = 192 # this will be removed soon
+    image_size: int = 192
     num_epochs: int = 20
     data_loader_n_jobs: int = 1
     efficient_model_type: str = "efficientnet-b0"
@@ -179,7 +179,10 @@ def train_based_normalize(train_dataset_id=None):
 
 
 if __name__ == "__main__":
-
+    # force colab to get dataclasses
+    Task.add_requirements('dataclasses')
+    # override numpy version for colab
+    Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
     task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='remove all hardcoded',
@@ -243,6 +246,7 @@ if __name__ == "__main__":
 
     model = FlowerModel(
         num_classes=len(lbl_enc.classes_),
+        efficientnet_model=cfg.efficient_model_type,
         adam_lr=cfg.adam_lr)
 
     # temporary, model pathname here, and make sure directory exists
