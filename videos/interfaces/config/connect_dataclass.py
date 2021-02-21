@@ -11,7 +11,7 @@ class TrainingConfig:
     model_name: str = 'hello'
     train_batch_size: int = 32
     valid_batch_size: int = 32
-    # can only be 192, 224, 331, 512 if using the garden dataset
+    # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192 # this should be an enum!
     num_epochs: int = 20
     data_loader_n_jobs: int = 1

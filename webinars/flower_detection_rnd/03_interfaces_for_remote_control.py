@@ -39,7 +39,7 @@ class FlowerTrainingConfig:
     fp16mode: bool = True
     train_batch_size: int = 32
     valid_batch_size: int = 32
-    # can only be 192, 224, 331, 512 if using the garden dataset
+    # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192 # this will be removed soon
     num_epochs: int = 20
     data_loader_n_jobs: int = 1

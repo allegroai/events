@@ -7,7 +7,7 @@ from pathlib import Path
 class DataSplitConf:
     # already exists - "someone already uploaded via cli"
     input_dataset_id: str = "86895530658c47a4918bda4f0d92c3e8"
-    image_size_values: set = (192, 224, 331, 512)
+    image_size_values: set = (192, 224, 311, 512)
     dataset_name: str = "flower_detection"
     folder_name_prefix = "jpeg-"
     delete_target_new_dataset_if_exists = True
