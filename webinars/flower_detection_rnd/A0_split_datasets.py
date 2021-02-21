@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
 from PIL import Image
+from tqdm import tqdm
 
 
 class DataSplitConf:
@@ -37,7 +38,7 @@ def gen_norm_info(over_file_folder):
     pixel_var = np.array([0, 0, 0], dtype=np.float32)
     files = [f for f in Path(over_file_folder).glob('**/*.jp*g')]
     n_files = len(files)
-    for image_fname in files:
+    for image_fname in tqdm(files, desc='calculating...'):
         image = Image.open(image_fname)
         image = np.array(image)/max_value
         pixel_mean = image.mean(axis=(0, 1))
@@ -110,10 +111,6 @@ if __name__ == '__main__':
         for stage in ['train', 'val']:  # TODO 'test'
             file_folder = path_for_image_size / stage
 
-            if stage == 'train':
-                print(f"calculating mean pixel for train dataset on {file_folder}")
-                results[image_size]['norm_info'] = gen_norm_info(file_folder)
-
             new_dataset = Dataset.create(
                 dataset_name=dataset_name+stage,
                 dataset_project=project_name,
@@ -127,4 +124,9 @@ if __name__ == '__main__':
 
             results[image_size][stage] = new_dataset.id
 
-    task.upload_artifact('metadata', results)
+            if stage == 'train':
+                print(f"Calculating mean pixel for train dataset... ")
+                results[image_size]['norm_info'] = gen_norm_info(file_folder)
+
+    task.upload_artifact('dataset_metadata', results)
+    task.close()
