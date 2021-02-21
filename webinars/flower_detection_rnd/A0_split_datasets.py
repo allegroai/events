@@ -2,8 +2,6 @@ from clearml import Task, Dataset
 from dataclasses import dataclass
 from pathlib import Path
 
-DELETE_DATASETS_IF_ALREADY_EXIST = True
-
 
 @dataclass
 class DataSplitConf:
@@ -12,13 +10,14 @@ class DataSplitConf:
     image_size_values: set = (192, 224, 331, 512)
     dataset_name: str = "flower_detection"
     folder_name_prefix = "jpeg-"
+    delete_target_new_dataset_if_exists = True
 
 
-def extract_relevant_filenames(dataset_path, image_size, folder_name_pattern=None):
+def extract_relevant_filenames(dataset_path, im_size, folder_name_pattern=None):
     # original dataset glob patterns
     import os
     import glob
-    folder_name_pattern = f"jpeg-{image_size}x{image_size}" if\
+    folder_name_pattern = f"jpeg-{im_size}x{im_size}" if\
         folder_name_pattern is None else folder_name_pattern
     train_image_paths = glob.glob(
         os.path.join(
@@ -46,7 +45,7 @@ if __name__ == '__main__':
     )
 
     cfg = DataSplitConf()
-    task.connect(cfg,'dataset split config')
+    task.connect(cfg, 'dataset split config')
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
@@ -59,17 +58,17 @@ if __name__ == '__main__':
             test_if_exists = Dataset.list_datasets(
                 dataset_project=project_name,
                 partial_name=dataset_name,
-                only_completed=True,
+                only_completed=False,
             )
 
             if len(test_if_exists):
-                if DELETE_DATASETS_IF_ALREADY_EXIST:
+                if cfg.delete_target_new_dataset_if_exists:
                     print(f'found datasets in the project with image size {image_size}')
                     for t in test_if_exists:
                         try:
-                            Dataset.delete(t)
+                            Dataset.delete(t['id'])
                         except ValueError:
-                            print(f'could not delete {t} - has children?')
+                            print(f'could not delete dataset - has children?')
                 else:
                     continue
 
