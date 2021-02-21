@@ -31,8 +31,7 @@ class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
     # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192
-    dataset_metadata_id: str = "e8c81e02ff9141acb74041d835900db2"
-    # dataset_metadata_id: str = "677645c9afd843ecb40f77ca119eb85a"
+    dataset_metadata_id: str = "677645c9afd843ecb40f77ca119eb85a"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # just in case you need to access models locally
     model_path: str = "models/"
@@ -183,7 +182,7 @@ if __name__ == "__main__":
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
     task = Task.init(project_name='R|D?R&D! Webinar 01',
-                     task_name='remove all hardcoded',
+                     task_name='Full integration',
                      output_uri=True,  # auto save everything to Clearml Free
                      )
 
@@ -204,7 +203,7 @@ if __name__ == "__main__":
     # get artifact
     datasets_metadata_task = Task.get_task(cfg.dataset_metadata_id)
     artifact = datasets_metadata_task.artifacts[cfg.dataset_metadata_artifact_name]
-    metadata = artifact
+    metadata = artifact.get()
 
     dataset_metadata = metadata[str(cfg.image_size)]
 
@@ -219,8 +218,12 @@ if __name__ == "__main__":
         raise ValueError('Preprocess error: could not find'
                          f' datasets for image size {cfg.image_size}')
     # download dataset (cached!)
-    train_dataset_folder = Dataset.get(dataset_id=train_dataset_id).get_local_copy()
-    valid_dataset_folder = Dataset.get(dataset_id=valid_dataset_id).get_local_copy()
+    try:
+        train_dataset_folder = Dataset.get(dataset_id=train_dataset_id).get_local_copy()
+        valid_dataset_folder = Dataset.get(dataset_id=valid_dataset_id).get_local_copy()
+    except ValueError as ex:
+        raise ValueError(f'Preprocess error for datasets for image size {cfg.image_size}\n{ex}')
+
 
     train_image_paths = [f for f in Path(train_dataset_folder).glob('**/*.jp*g')]
     valid_image_paths = [f for f in Path(valid_dataset_folder).glob('**/*.jp*g')]
