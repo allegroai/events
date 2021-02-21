@@ -5,7 +5,6 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-
 @dataclass
 class DataSplitConf:
     # already exists - "someone already uploaded via cli"
@@ -13,7 +12,8 @@ class DataSplitConf:
     image_size_values: set = (192, 224, 311, 512)
     dataset_name: str = "flower_detection"
     folder_name_prefix: str = "jpeg-"
-    delete_target_new_dataset_if_exists: bool = True
+    overwrite_dataset_if_exists: bool = True
+    cloud_queue: str = "colab"
 
 
 def extract_relevant_filenames(dataset_path, im_size, folder_name_pattern=None):
@@ -69,18 +69,24 @@ if __name__ == '__main__':
     task.connect(cfg, 'dataset split config')
 
     # Uncomment to force run remotely
-    task.execute_remotely(queue_name='colab')
+    task.execute_remotely(queue_name=cfg.cloud_queue)
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
 
-    results = {image_size: {'train': '', 'val': '', 'norm_info': {}}
+    # going to do some pruning relative to this folder
+    all_subfolders =  [d for d in Path(input_dataset_folder).iterdir() if d.is_dir()]
+    all_subfolders_rel = [d.relative_to(input_dataset_folder) for d in all_subfolders]
+
+
+    # prepare an artifact for upload
+    results = {str(image_size): {'train': '', 'val': '', 'norm_info': {}}
                for image_size in cfg.image_size_values}
 
     for image_size in cfg.image_size_values:
-        # if dataset exists skip creating
         dataset_name = f"{cfg.dataset_name}_{image_size}x{image_size}_"
 
+        # if dataset exists skip creating
         try:
             test_if_exists = Dataset.list_datasets(
                 dataset_project=project_name,
@@ -89,7 +95,7 @@ if __name__ == '__main__':
             )
 
             if len(test_if_exists):
-                if cfg.delete_target_new_dataset_if_exists:
+                if cfg.overwrite_dataset_if_exists:
                     print(f'found datasets in the project with image size {image_size}')
                     for t in test_if_exists:
                         try:
@@ -114,26 +120,37 @@ if __name__ == '__main__':
         if not len(validation_files):
             raise NotImplementedError('No validation files - option for train only not supported')
 
-        # train
+        # relative folder
+        rel_folder = cfg.folder_name_prefix + f"{image_size}x{image_size}"
+        # actual files
         path_for_image_size =\
-            Path(input_dataset_folder) / (cfg.folder_name_prefix + f"{image_size}x{image_size}")
-        for stage in ['train', 'val']:  # TODO 'test'
-            file_folder = path_for_image_size / stage
+            Path(input_dataset_folder) / rel_folder
 
+        for stage in ['train', 'val']:  # TODO 'test'
+
+            print('now creating new dataset')
             new_dataset = Dataset.create(
                 dataset_name=dataset_name+stage,
                 dataset_project=project_name,
                 parent_datasets=[cfg.input_dataset_id]
             )
 
-            new_dataset.add_files(file_folder, wildcard='*.jp*g')
-            new_dataset.upload(show_progress=True, verbose=False)
+            # remove other sizes
+            for other_folder_rel in all_subfolders_rel:
+                if other_folder_rel != rel_folder:
+                    new_dataset.remove_files(str(other_folder_rel))
+            # remove other stages
+            for not_stage in ['train', 'val', 'test']:
+                if not_stage != stage:
+                    new_dataset.remove_files(str(rel_folder/stage))
+
             new_dataset.finalize()
             new_dataset.publish()
 
             results[image_size][stage] = new_dataset.id
 
             if stage == 'train':
+                file_folder = path_for_image_size / stage
                 print(f"Calculating pixel centering info for train dataset... ")
                 results[image_size]['norm_info'] = gen_norm_info(file_folder)
 

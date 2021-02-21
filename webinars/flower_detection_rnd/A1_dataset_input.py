@@ -1,8 +1,6 @@
 import argparse
 from pathlib import Path
-import os
 import tqdm  # temp
-import glob
 import warnings
 from dataclasses import dataclass, asdict
 
@@ -20,7 +18,7 @@ from clearml import Task, Dataset
 
 # INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
 # MODEL_PATH = "../../models/"
-MODEL_NAME = os.path.basename(__file__)[:-3]
+MODEL_NAME = "FlowerDetector_{}"
 # TRAIN_BATCH_SIZE = 32
 # VALID_BATCH_SIZE = 32
 # IMAGE_SIZE = 192
@@ -199,6 +197,7 @@ if __name__ == "__main__":
     task.connect(aug_cfg, 'augmentation_config')
     # default model config
     task.set_model_config(config_dict=asdict(ModelConfig()))
+    model_params = ModelConfig(**task.get_model_config_dict())
 
     # get artifact
     datasets_metadata_task = Task.get_task(cfg.dataset_metadata_id)
@@ -228,8 +227,8 @@ if __name__ == "__main__":
     train_image_paths = [f for f in Path(train_dataset_folder).glob('**/*.jp*g')]
     valid_image_paths = [f for f in Path(valid_dataset_folder).glob('**/*.jp*g')]
 
-    train_targets = [x.stem for x in train_image_paths]
-    valid_targets = [x.stem for x in valid_image_paths]
+    train_targets = [x.parts[-2] for x in train_image_paths]
+    valid_targets = [x.parts[-2] for x in valid_image_paths]
 
     lbl_enc = preprocessing.LabelEncoder()
     train_targets = lbl_enc.fit_transform(train_targets)
@@ -252,7 +251,6 @@ if __name__ == "__main__":
         augmentations=valid_aug,
     )
 
-    model_params = ModelConfig(**task.get_model_config_dict())
     model = FlowerModel(
         num_classes=len(lbl_enc.classes_),
         efficientnet_model=model_params.efficient_model_type,
@@ -261,9 +259,11 @@ if __name__ == "__main__":
         linear_dim=model_params.linear_dim,
     )
 
-    # temporary, model pathname here, and make sure directory exists
-    model_path = os.path.join(cfg.model_path, model_params.model_name + ".bin")
-    Path(cfg.model_path).mkdir(exist_ok=True)
+    # model pathname here, and make sure directory exists
+    model_path = Path(cfg.model_path)
+    model_path.mkdir(exist_ok=True)
+    model_name = model_params.model_name.format(cfg.image_size) + ".bin"
+    model_path = model_path / model_name
 
     tb = CustomTensorBoardLogger()
 
