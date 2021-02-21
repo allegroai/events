@@ -12,8 +12,8 @@ class DataSplitConf:
     input_dataset_id: str = "86895530658c47a4918bda4f0d92c3e8"
     image_size_values: set = (192, 224, 311, 512)
     dataset_name: str = "flower_detection"
-    folder_name_prefix = "jpeg-"
-    delete_target_new_dataset_if_exists = True
+    folder_name_prefix: str = "jpeg-"
+    delete_target_new_dataset_if_exists: bool = True
 
 
 def extract_relevant_filenames(dataset_path, im_size, folder_name_pattern=None):
@@ -42,8 +42,8 @@ def gen_norm_info(over_file_folder):
     for image_fname in tqdm(files, desc='calculating...'):
         image = Image.open(image_fname)
         image = np.array(image)/max_value
-        pixel_mean = image.mean(axis=(0, 1))
-        pixel_var = image.var(axis=(0, 1))
+        pixel_mean += image.mean(axis=(0, 1))
+        pixel_var += image.var(axis=(0, 1))
 
     return dict(
         mean=(pixel_mean/n_files).tolist(),
@@ -134,7 +134,7 @@ if __name__ == '__main__':
             results[image_size][stage] = new_dataset.id
 
             if stage == 'train':
-                print(f"Calculating mean pixel for train dataset... ")
+                print(f"Calculating pixel centering info for train dataset... ")
                 results[image_size]['norm_info'] = gen_norm_info(file_folder)
 
     task.upload_artifact('dataset_metadata', results)
