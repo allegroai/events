@@ -139,11 +139,11 @@ if __name__ == '__main__':
             # remove other sizes
             for other_folder_rel in all_subfolders_rel:
                 if other_folder_rel != rel_folder:
-                    new_dataset.remove_files(str(other_folder_rel)+"/*", verbose=True)
+                    new_dataset.remove_files(str(other_folder_rel)+"/*", verbose=False)
             # remove other stages
             for not_stage in ['train', 'val', 'test']:
                 if not_stage != stage:
-                    new_dataset.remove_files(str(rel_folder/not_stage)+"/*", verbose=True)
+                    new_dataset.remove_files(str(rel_folder/not_stage)+"/*", verbose=False)
 
             # upload should be no-op in this case
             rmed = new_dataset.list_removed_files(cfg.input_dataset_id)
