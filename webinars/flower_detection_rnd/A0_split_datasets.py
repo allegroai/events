@@ -1,10 +1,12 @@
 from clearml import Task, Dataset
 from pathlib import Path
+from dataclasses import dataclass
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
 
+@dataclass
 class DataSplitConf:
     # already exists - "someone already uploaded via cli"
     input_dataset_id: str = "86895530658c47a4918bda4f0d92c3e8"
@@ -44,26 +46,30 @@ def gen_norm_info(over_file_folder):
         pixel_var = image.var(axis=(0, 1))
 
     return dict(
-        mean=pixel_mean/n_files,
-        std=np.sqrt(pixel_var/n_files),
+        mean=(pixel_mean/n_files).tolist(),
+        std=np.sqrt(pixel_var/n_files).tolist(),
         max_pixel_value=max_value,
     )
 
 
 if __name__ == '__main__':
     project_name = 'R|D?R&D! Webinar 01'
+    # force colab to get dataclasses
+    Task.add_requirements('dataclasses')
+    # force colab to get dataclasses
+    Task.add_requirements('numpy', '1.19.5')
     task = Task.init(
         project_name=project_name,
         task_name='Orig dataset split to sizes',
-        output_uri=True,  # auto save everything to ClearML Free
-        task_type=Task.TaskTypes.data_processing
+        task_type=Task.TaskTypes.data_processing,
+        output_uri = True,  # auto save everything to ClearML Free
     )
 
     cfg = DataSplitConf()
     task.connect(cfg, 'dataset split config')
 
     # Uncomment to force run remotely
-    # task.execute_remotely(queue_name='colab')
+    task.execute_remotely(queue_name='colab')
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
@@ -102,12 +108,15 @@ if __name__ == '__main__':
 
         # test that there are files train/val
         if not len(train_files):
-            raise ValueError(f'No files found for image size {image_size} on folder {input_dataset_folder}')
+            raise ValueError(
+                f'No files found for image size {image_size} on folder {input_dataset_folder}'
+            )
         if not len(validation_files):
             raise NotImplementedError('No validation files - option for train only not supported')
 
         # train
-        path_for_image_size = Path(input_dataset_folder) / (cfg.folder_name_prefix + f"{image_size}x{image_size}")
+        path_for_image_size =\
+            Path(input_dataset_folder) / (cfg.folder_name_prefix + f"{image_size}x{image_size}")
         for stage in ['train', 'val']:  # TODO 'test'
             file_folder = path_for_image_size / stage
 
@@ -118,7 +127,7 @@ if __name__ == '__main__':
             )
 
             new_dataset.add_files(file_folder, wildcard='*.jp*g')
-            new_dataset.upload(show_progress=True, verbose=True)
+            new_dataset.upload(show_progress=True, verbose=False)
             new_dataset.finalize()
             new_dataset.publish()
 
