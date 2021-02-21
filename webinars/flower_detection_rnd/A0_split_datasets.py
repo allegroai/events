@@ -56,7 +56,7 @@ if __name__ == '__main__':
     project_name = 'R|D?R&D! Webinar 01'
     # force colab to get dataclasses
     Task.add_requirements('dataclasses')
-    # force colab to get dataclasses
+    # override numpy version for colab
     Task.add_requirements('numpy', '1.19.5')
     task = Task.init(
         project_name=project_name,
