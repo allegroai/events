@@ -89,8 +89,9 @@ if __name__ == '__main__':
                     for t in test_if_exists:
                         try:
                             Dataset.delete(t['id'])
+                            print(f'Deleted {t}')
                         except ValueError:
-                            print(f'could not delete dataset - has children?')
+                            print(f'Could not delete dataset - has children?')
                 else:
                     continue
 
