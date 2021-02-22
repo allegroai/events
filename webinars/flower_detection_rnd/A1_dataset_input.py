@@ -22,7 +22,7 @@ class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
     # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192
-    dataset_metadata_id: str = "466f3798cb0041a3801bd904e7cf3631"
+    dataset_metadata_id: str = "5b3da654bb1c4b9c81acfcf4d75063ea"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # just in case you need to access models locally
     model_path: str = "models/"

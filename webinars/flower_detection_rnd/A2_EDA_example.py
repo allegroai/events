@@ -10,7 +10,7 @@ from clearml import Task, Dataset
 
 @dataclass
 class EDAConf:
-    dataset_metadata_id: str = "466f3798cb0041a3801bd904e7cf3631"
+    dataset_metadata_id: str = "5b3da654bb1c4b9c81acfcf4d75063ea"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # put graphics options here
     ...
