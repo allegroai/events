@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 import tqdm  # temp
 import warnings
@@ -166,11 +165,11 @@ def train_based_normalize(norm_setting=None):
 
 if __name__ == "__main__":
     # force colab to get dataclasses
-    Task.add_requirements('dataclasses')
+    Task.add_requirements('dataclasses','0.4')
     # override numpy version for colab
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
-    task = Task.init(project_name='R|D?R&D! Webinar 01',
+    task = Task.init(project_name='R|D?R&D! Webinar 01 - demo',
                      task_name='Full integration',
                      output_uri=True,  # auto save everything to Clearml Free
                      )

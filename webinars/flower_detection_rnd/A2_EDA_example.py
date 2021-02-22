@@ -1,8 +1,11 @@
-from clearml import Task, Dataset
 from dataclasses import dataclass
 from pathlib import Path
+from random import sample
+
 import pandas as pd
 import plotly.express as px
+
+from clearml import Task, Dataset
 
 
 @dataclass
@@ -10,24 +13,27 @@ class EDAConf:
     dataset_metadata_id: str = "466f3798cb0041a3801bd904e7cf3631"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # put graphics options here
+    ...
 
 
 if __name__ == '__main__':
     Task.add_requirements('dataclasses')
-    Task.add_requirements('pandas')
     Task.add_requirements('plotly')
     # force colab to get dataclasses
-    Task.add_requirements('dataclasses')
-    # override numpy version for colab
+    Task.add_requirements('dataclasses','0.4')
+    # override versions for colab
+    Task.add_requirements('pandas', '1.1.5')
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
-    task = Task.init(project_name='R|D?R&D! Webinar 01',
+    task = Task.init(project_name='R|D?R&D! Webinar 01 - demo',
                      task_name='EDA example',
                      output_uri=True,  # auto save everything to Clearml Free
                      )
 
     cfg = EDAConf()
     task.connect(cfg, 'EDA Config')
+
+    task.execute_remotely('colab')
 
     datasets_metadata_task = Task.get_task(cfg.dataset_metadata_id)
     artifact = datasets_metadata_task.artifacts[cfg.dataset_metadata_artifact_name]
@@ -52,6 +58,15 @@ if __name__ == '__main__':
 
         train_image_paths = [f for f in Path(train_dataset_folder).glob('**/*.jp*g')]
         valid_image_paths = [f for f in Path(valid_dataset_folder).glob('**/*.jp*g')]
+
+        # show some images
+
+        some_images = sample(train_image_paths, 5)
+        for im in some_images:
+            task.logger.report_image(f'example images {image_size}x{image_size}', 'train', 0, str(im))
+        some_images_val = sample(valid_image_paths, 5)
+        for im in some_images_val:
+            task.logger.report_image(f'example images {image_size}x{image_size}', 'val', 0, str(im))
 
         train_targets = [x.parts[-2] for x in train_image_paths]
         valid_targets = [x.parts[-2] for x in valid_image_paths]
