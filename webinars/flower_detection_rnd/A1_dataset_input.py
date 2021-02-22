@@ -34,7 +34,7 @@ class FlowerTrainingConfig:
     data_loader_n_jobs: int = 1
     early_stopping_patience: int = 3
     # relevant for executing remotely
-    cloud_queue: str = None # 'colab'
+    cloud_queue: str = 'colab'
 
 @dataclass
 class ModelConfig:
