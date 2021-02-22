@@ -10,8 +10,10 @@ class DataSplitConf:
     # already exists - "someone already uploaded via cli"
     input_dataset_id: str = "86895530658c47a4918bda4f0d92c3e8"
     image_size_values: set = (192, 224, 311, 512)
+    use_lineage: bool = False
     dataset_name: str = "flower_detection"
     folder_name_prefix: str = "jpeg-"
+    delete_earlier_versions: bool = True
     cloud_queue: str = "colab"
 
 
@@ -67,16 +69,15 @@ if __name__ == '__main__':
     cfg = DataSplitConf()
     task.connect(cfg, 'dataset split config')
 
-    # Uncomment to force run remotely
-    task.execute_remotely(queue_name=cfg.cloud_queue)
+    if cfg.cloud_queue is not None and len(cfg.cloud_queue):
+        task.execute_remotely(cfg.cloud_queue)
 
     input_dataset = Dataset.get(dataset_id=cfg.input_dataset_id)
     input_dataset_folder = input_dataset.get_local_copy()
 
     # going to do some pruning relative to this folder
-    all_subfolders =  [d for d in Path(input_dataset_folder).iterdir() if d.is_dir()]
+    all_subfolders = [d for d in Path(input_dataset_folder).iterdir() if d.is_dir()]
     all_subfolders_rel = [d.relative_to(input_dataset_folder) for d in all_subfolders]
-
 
     # prepare an artifact for upload
     results = {image_size: {'train': '', 'val': '', 'norm_info': {}}
@@ -84,26 +85,6 @@ if __name__ == '__main__':
 
     for image_size in cfg.image_size_values:
         dataset_name = f"{cfg.dataset_name}_{image_size}x{image_size}_"
-
-        # if dataset exists skip creating
-        try:
-            test_if_exists = Dataset.list_datasets(
-                dataset_project=project_name,
-                partial_name=dataset_name,
-                only_completed=False,
-            )
-
-            if len(test_if_exists):
-                print(f'found datasets in the project with image size {image_size}')
-                for t in test_if_exists:
-                    try:
-                        Dataset.delete(t['id'])
-                        print(f'Deleted {t}')
-                    except ValueError:
-                        print(f'Could not delete dataset - has children?')
-
-        except ValueError:
-            print(f'Did not find {dataset_name}, creating!')
 
         train_files, validation_files = \
             extract_relevant_filenames(input_dataset_folder, image_size)
@@ -125,26 +106,65 @@ if __name__ == '__main__':
 
         for stage in ['train', 'val']:  # TODO 'test'
 
-            print('now creating new dataset')
-            new_dataset = Dataset.create(
-                dataset_name=dataset_name+stage,
-                dataset_project=project_name,
-                parent_datasets=[cfg.input_dataset_id]
-            )
+            try:
+                test_if_exists = Dataset.list_datasets(
+                    dataset_project=project_name,
+                    partial_name=dataset_name+stage,
+                    only_completed=False,
+                )
 
-            # remove other sizes
-            for other_folder_rel in all_subfolders_rel:
-                if other_folder_rel != rel_folder:
-                    new_dataset.remove_files(str(other_folder_rel)+"/*", verbose=False)
-            # remove other stages
-            for not_stage in ['train', 'val', 'test']:
-                if not_stage != stage:
-                    new_dataset.remove_files(str(rel_folder/not_stage)+"/*", verbose=False)
+                if len(test_if_exists):
+                    print(f'found datasets in the project with image size {image_size}')
+                    if cfg.delete_earlier_versions:
+                        for t in test_if_exists:
+                            try:
+                                Dataset.delete(t['id'])
+                                print(f'Deleted {t}')
+                            except ValueError:
+                                print(f'Could not delete dataset - has children?')
 
-            # upload should be no-op in this case
-            rmed = new_dataset.list_removed_files(cfg.input_dataset_id)
-            print(f"pruned {len(rmed)} files from parent datatset")
-            new_dataset.upload(show_progress=True, verbose=True)
+            except ValueError:
+                pass
+
+            print(f'Now with {dataset_name}, creating!')
+            if cfg.use_lineage:
+                new_dataset = Dataset.create(
+                    dataset_name=dataset_name+stage,
+                    dataset_project=project_name,
+                    parent_datasets=[cfg.input_dataset_id]
+                )
+                print('...Done')
+
+                # remove other sizes
+                for other_folder_rel in all_subfolders_rel:
+                    if other_folder_rel != rel_folder:
+                        new_dataset.remove_files(str(other_folder_rel)+"/*", verbose=False)
+                # remove other stages
+                for not_stage in ['train', 'val', 'test']:
+                    if not_stage != stage:
+                        new_dataset.remove_files(str(rel_folder/not_stage)+"/*", verbose=False)
+
+                # upload should be no-op in this case
+                rmed = new_dataset.list_removed_files(cfg.input_dataset_id)
+                print(f"pruned {len(rmed)} files from parent dataset")
+
+            else:
+
+                print('Not using lineage, dataset will be created from scratch')
+                new_dataset = Dataset.create(
+                    dataset_name=dataset_name+stage,
+                    dataset_project=project_name,
+                )
+                print('...Done')
+                new_dataset.add_files(
+                    input_dataset_folder+"/"+str(rel_folder/stage),
+                    wildcard='*.jp*g',
+                    local_base_folder=input_dataset_folder,
+                    dataset_path=str(rel_folder/stage),
+                    verbose=True  # type: bool
+                )
+
+            new_dataset.upload(show_progress=True)
             new_dataset.finalize()
             new_dataset.publish()
 
