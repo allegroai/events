@@ -16,20 +16,14 @@ from torch.nn import functional as F
 
 from clearml import Task, Dataset
 
-# INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
-# MODEL_PATH = "../../models/"
 MODEL_NAME = "FlowerDetector_{}"
-# TRAIN_BATCH_SIZE = 32
-# VALID_BATCH_SIZE = 32
-# IMAGE_SIZE = 192
-# EPOCHS = 20
 
 @dataclass
 class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
     # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192
-    dataset_metadata_id: str = "cb6cec48b9f54f74859df626fa9d0e20"
+    dataset_metadata_id: str = "50a8767573a34b97820f82cc34daa34c"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # just in case you need to access models locally
     model_path: str = "models/"
@@ -139,8 +133,10 @@ def get_train_augmentations(augment_config: AugConfig = None, norm_setting=None)
                 p=augment_config.hue_sat_val,
             ),
             albumentations.RandomBrightnessContrast(
-                brightness_limit=(-augment_config.random_bright_mag, augment_config.random_bright_mag),
-                contrast_limit=(-augment_config.random_contrast_mag, augment_config.random_contrast_mag),
+                brightness_limit=
+                (-augment_config.random_bright_mag, augment_config.random_bright_mag),
+                contrast_limit=
+                (-augment_config.random_contrast_mag, augment_config.random_contrast_mag),
                 p=augment_config.random_bright_contrast
             ),
             train_based_normalize(norm_setting)
@@ -153,16 +149,10 @@ def get_valid_augmentations(augment_config: AugConfig, norm_setting=None):
     # augment_config left as an option if we will ever do TTA
     if augment_config is not None:
         return get_train_augmentations(augment_config=augment_config, norm_setting=norm_setting)
-    return albumentations.Compose(
-        [
-            train_based_normalize(norm_setting)
-        ],
-        p=1.0,
-    )
+    return albumentations.Compose([train_based_normalize(norm_setting)], p=1.0,)
 
 
 def train_based_normalize(norm_setting=None):
-    # the dataset will have a dict containing these
     default_values = dict(
         mean=[0.485, 0.456, 0.406],
         std=[0.229, 0.224, 0.225],
@@ -170,7 +160,6 @@ def train_based_normalize(norm_setting=None):
     )
     values = default_values.copy() if norm_setting is None \
         else norm_setting.copy()
-
     values.update({"p": 1.0})
     return albumentations.Normalize(**values)
 
@@ -201,8 +190,9 @@ if __name__ == "__main__":
     task.set_model_config(config_dict=asdict(ModelConfig()))
     model_params = ModelConfig(**task.get_model_config_dict())
 
-    if len(cfg.cloud_queue):
+    if cfg.cloud_queue is not None and len(cfg.cloud_queue):
         task.execute_remotely(cfg.cloud_queue)
+    
     # get artifact
     datasets_metadata_task = Task.get_task(cfg.dataset_metadata_id)
     artifact = datasets_metadata_task.artifacts[cfg.dataset_metadata_artifact_name]
