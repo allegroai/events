@@ -101,7 +101,7 @@ if __name__ == '__main__':
         rel_folder = cfg.folder_name_prefix + f"{image_size}x{image_size}"
         rel_folder = Path(rel_folder)
         # actual files
-        path_for_image_size =\
+        path_to_images =\
             Path(input_dataset_folder) / rel_folder
 
         for stage in ['train', 'val']:  # TODO 'test'
@@ -149,7 +149,6 @@ if __name__ == '__main__':
                 print(f"pruned {len(rmed)} files from parent dataset")
 
             else:
-
                 print('Not using lineage, dataset will be created from scratch')
                 new_dataset = Dataset.create(
                     dataset_name=dataset_name+stage,
@@ -157,11 +156,11 @@ if __name__ == '__main__':
                 )
                 print('...Done')
                 new_dataset.add_files(
-                    input_dataset_folder+"/"+str(rel_folder/stage),
+                    str(path_to_images/stage),
                     wildcard='*.jp*g',
                     local_base_folder=input_dataset_folder,
                     dataset_path=str(rel_folder/stage),
-                    verbose=True  # type: bool
+                    verbose=False,
                 )
 
             new_dataset.upload(show_progress=True)
@@ -171,7 +170,7 @@ if __name__ == '__main__':
             results[image_size][stage] = new_dataset.id
 
             if stage == 'train':
-                file_folder = path_for_image_size / stage
+                file_folder = path_to_images / stage
                 print(f"Calculating pixel centering info for train dataset... ")
                 results[image_size]['norm_info'] = gen_norm_info(file_folder)
 

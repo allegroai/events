@@ -23,7 +23,7 @@ class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
     # can only be 192, 224, 311, 512 if using the garden dataset
     image_size: int = 192
-    dataset_metadata_id: str = "50a8767573a34b97820f82cc34daa34c"
+    dataset_metadata_id: str = "466f3798cb0041a3801bd904e7cf3631"
     dataset_metadata_artifact_name: str = 'dataset_metadata'
     # just in case you need to access models locally
     model_path: str = "models/"
@@ -216,7 +216,6 @@ if __name__ == "__main__":
         valid_dataset_folder = Dataset.get(dataset_id=valid_dataset_id).get_local_copy()
     except ValueError as ex:
         raise ValueError(f'Preprocess error for datasets for image size {cfg.image_size}\n{ex}')
-
 
     train_image_paths = [f for f in Path(train_dataset_folder).glob('**/*.jp*g')]
     valid_image_paths = [f for f in Path(valid_dataset_folder).glob('**/*.jp*g')]
