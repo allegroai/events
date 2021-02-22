@@ -34,13 +34,13 @@ if __name__ == "__main__":
 
     # step 1 - split data
     pipe.add_step(name='split_dataset',
-                  base_task_id='466f3798cb0041a3801bd904e7cf3631',
+                  base_task_id='5b3da654bb1c4b9c81acfcf4d75063ea',
                   parameter_override={
                       'dataset split config/image_size_values': pipe_cfg.image_size_values,
                       'dataset split config/input_dataset_id': pipe_cfg.input_dataset_id,
                   })
     pipe.add_step(name='EDA',
-                  base_task_id='d547006792784ea0933fa93e4afb822d',
+                  base_task_id='f0b86d8e288143019cea0c41898133c7',
                   execution_queue='laptop',  # don't need gpu for this one ;)
                   parents=['split_dataset', ],
                   parameter_override={
@@ -48,8 +48,7 @@ if __name__ == "__main__":
                   })
     for image_size in sorted(pipe_cfg.image_size_values):
         pipe.add_step(name=f'train_{image_size}x{image_size}',
-                      base_task_id='508da62a7132454ca185ae7fe940d3b5',
-                      execution_queue='laptop',  # don't need gpu for this one ;)
+                      base_task_id='cf51631735c9426cae3e09879123f269',
                       parents=['split_dataset', ],
                       parameter_override={'config/image_size': image_size,
                                           'config/dataset_metadata_id': '${split_dataset.id}',

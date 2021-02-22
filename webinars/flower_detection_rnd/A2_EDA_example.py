@@ -20,7 +20,7 @@ if __name__ == '__main__':
     Task.add_requirements('dataclasses')
     Task.add_requirements('plotly')
     # force colab to get dataclasses
-    Task.add_requirements('dataclasses','0.4')
+    Task.add_requirements('dataclasses', '0.4')
     # override versions for colab
     Task.add_requirements('pandas', '1.1.5')
     Task.add_requirements('numpy', '1.19.5')
