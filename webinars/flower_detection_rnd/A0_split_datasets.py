@@ -12,7 +12,6 @@ class DataSplitConf:
     image_size_values: set = (192, 224, 311, 512)
     dataset_name: str = "flower_detection"
     folder_name_prefix: str = "jpeg-"
-    overwrite_dataset_if_exists: bool = True
     cloud_queue: str = "colab"
 
 
@@ -95,16 +94,13 @@ if __name__ == '__main__':
             )
 
             if len(test_if_exists):
-                if cfg.overwrite_dataset_if_exists:
-                    print(f'found datasets in the project with image size {image_size}')
-                    for t in test_if_exists:
-                        try:
-                            Dataset.delete(t['id'])
-                            print(f'Deleted {t}')
-                        except ValueError:
-                            print(f'Could not delete dataset - has children?')
-                else:
-                    continue
+                print(f'found datasets in the project with image size {image_size}')
+                for t in test_if_exists:
+                    try:
+                        Dataset.delete(t['id'])
+                        print(f'Deleted {t}')
+                    except ValueError:
+                        print(f'Could not delete dataset - has children?')
 
         except ValueError:
             print(f'Did not find {dataset_name}, creating!')
