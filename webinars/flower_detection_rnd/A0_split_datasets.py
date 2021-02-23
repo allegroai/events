@@ -54,7 +54,7 @@ def gen_norm_info(over_file_folder):
 
 
 if __name__ == '__main__':
-    project_name = 'R|D?R&D! Webinar 01 - demo'
+    project_name = 'R|D?R&D! Webinar 01'
     # force colab to get dataclasses
     Task.add_requirements('dataclasses','0.4')
     # override numpy version for colab

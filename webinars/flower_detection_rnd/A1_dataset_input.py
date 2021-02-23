@@ -169,7 +169,7 @@ if __name__ == "__main__":
     # override numpy version for colab
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
-    task = Task.init(project_name='R|D?R&D! Webinar 01 - demo',
+    task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='Full integration',
                      output_uri=True,  # auto save everything to Clearml Free
                      )
