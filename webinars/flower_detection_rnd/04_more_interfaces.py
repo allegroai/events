@@ -26,6 +26,7 @@ MODEL_NAME = os.path.basename(__file__)[:-3]
 # IMAGE_SIZE = 192
 # EPOCHS = 20
 
+
 @dataclass
 class FlowerTrainingConfig:
     # For dataset, go to: https://www.kaggle.com/msheriey/104-flowers-garden-of-eden
@@ -58,6 +59,7 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                 self.writer.add_scalar(
                     f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
                 )
+
 
 class FlowerModel(tez.Model):
     def __init__(self,
@@ -103,8 +105,8 @@ class FlowerModel(tez.Model):
         return outputs, 0, {}
 
 
-@dataclass
-class AugConfig():
+@dataclass  # <----
+class AugConfig:
     transpose: float = 0.5
     horizontal_flip: float = 0.5
     vertical_flip: float = 0.5
@@ -160,7 +162,6 @@ def get_normalization_info(train_dataset_id):
     queries the dataset for the norm info config
     """
     raise NotImplementedError('need to implement data preprocessing first')
-    return {}
 
 
 def train_based_normalize(train_dataset_id=None):
@@ -177,7 +178,6 @@ def train_based_normalize(train_dataset_id=None):
     return albumentations.Normalize(**values)
 
 
-
 if __name__ == "__main__":
     # force colab to get dataclasses
     Task.add_requirements('dataclasses')
@@ -190,9 +190,9 @@ if __name__ == "__main__":
                      )
 
     cfg = FlowerTrainingConfig()
-    aug_cfg = AugConfig()
+    aug_cfg = AugConfig()  # <---
     task.connect(cfg, 'config')
-    task.connect(aug_cfg, 'augmentation_config')
+    task.connect(aug_cfg, 'augmentation_config')  # <---
 
     # Need to run on cpu only?
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -200,6 +200,7 @@ if __name__ == "__main__":
         warnings.warn('GPU not available!, using CPU mode')
         warnings.filterwarnings("ignore", module='torch.cuda.amp.autocast')
 
+    # factored out augmentations # <---
     train_aug = get_train_augmentations(aug_cfg, train_dataset_id=None)
     valid_aug = get_valid_augmentations(None, train_dataset_id=None)
 

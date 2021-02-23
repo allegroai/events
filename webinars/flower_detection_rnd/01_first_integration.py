@@ -17,10 +17,10 @@ from tez.callbacks import EarlyStopping
 from tez.datasets import ImageDataset
 from torch.nn import functional as F
 
-from clearml import Task
+from clearml import Task  # <---
 
 
-INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
+INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())  # <---
 MODEL_PATH = "../../models/"
 MODEL_NAME = os.path.basename(__file__)[:-3]
 TRAIN_BATCH_SIZE = 32
@@ -39,6 +39,7 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                 self.writer.add_scalar(
                     f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
                 )
+
 
 class FlowerModel(tez.Model):
     def __init__(self, num_classes):
@@ -81,12 +82,12 @@ class FlowerModel(tez.Model):
 
 if __name__ == "__main__":
 
-    # Track everything on ClearML Free
+    # Track everything on ClearML Free  # <---
     task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='initial integration - tracking only',
                      )
 
-    # Need to run on cpu only?
+    # Need to run on cpu only?  # <---
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
         warnings.warn('GPU not available!, using CPU mode')
@@ -163,7 +164,7 @@ if __name__ == "__main__":
 
     # temporary, model pathname here, and make sure directory exists
     model_path = os.path.join(MODEL_PATH, MODEL_NAME + ".bin")
-    Path(MODEL_PATH).mkdir(exist_ok=True)
+    Path(MODEL_PATH).mkdir(exist_ok=True)  # <---
 
     tb = CustomTensorBoardLogger()
 
@@ -178,7 +179,7 @@ if __name__ == "__main__":
         valid_dataset=valid_dataset,
         train_bs=TRAIN_BATCH_SIZE,
         valid_bs=VALID_BATCH_SIZE,
-        device=device,
+        device=device,  # <---
         epochs=EPOCHS,
         callbacks=[es, tb],
         fp16=True,

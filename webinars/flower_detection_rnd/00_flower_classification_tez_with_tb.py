@@ -35,6 +35,7 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                     f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
                 )
 
+
 class FlowerModel(tez.Model):
     def __init__(self, num_classes):
         super().__init__()

@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
+
 @dataclass
 class DataSplitConf:
     # already exists - "someone already uploaded via cli"

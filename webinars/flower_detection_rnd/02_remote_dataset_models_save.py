@@ -19,7 +19,7 @@ from torch.nn import functional as F
 
 from clearml import Task, Dataset
 
-# temporary - "someone uploaded the Dataset alread"
+# temporary - "someone uploaded the Dataset alread"  # <---
 DATASET_ID = '86895530658c47a4918bda4f0d92c3e8'
 # not used anymore, dataset is downloaded
 INPUT_PATH = str(Path("~/datasets/flowers/").expanduser())
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     # Track everything on ClearML Free
     task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='dataset and model tracking',
-                     output_uri=True, # auto save everything to Clearml Free
+                     output_uri=True,  # auto save everything to Clearml Free <---
                      )
 
     # Need to run on cpu only?
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         p=1.0,
     )
 
-    # download dataset (cached!)
+    # download dataset (cached!) <---
     dataset_folder = Dataset.get(dataset_id=DATASET_ID).get_local_copy()
 
     train_image_paths = glob.glob(
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     train_targets = lbl_enc.fit_transform(train_targets)
     valid_targets = lbl_enc.transform(valid_targets)
 
-    # track model labels
+    # track model labels <---
     task.set_model_label_enumeration({
         lbl: n for n, lbl in enumerate(lbl_enc.classes_)
     })

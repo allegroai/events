@@ -17,6 +17,7 @@ from clearml import Task, Dataset
 
 MODEL_NAME = "FlowerDetector_{}"
 
+
 @dataclass
 class FlowerTrainingConfig:
     # need just the image size and the artifact generated when splitting
@@ -35,7 +36,8 @@ class FlowerTrainingConfig:
     # relevant for executing remotely
     cloud_queue: str = 'colab'
 
-@dataclass
+
+@dataclass # <---- now model config is saved with model
 class ModelConfig:
     model_name: str = MODEL_NAME
     efficient_model_type: str = "efficientnet-b0"
@@ -56,7 +58,8 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                     f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
                 )
 
-class FlowerModel(tez.Model):
+
+class FlowerModel(tez.Model):  # <---- added more settings
     def __init__(self,
                  num_classes,
                  efficientnet_model: str ="efficientnet-b0",
@@ -103,7 +106,7 @@ class FlowerModel(tez.Model):
 
 
 @dataclass
-class AugConfig():
+class AugConfig:
     transpose: float = 0.5
     horizontal_flip: float = 0.5
     vertical_flip: float = 0.5
@@ -165,7 +168,7 @@ def train_based_normalize(norm_setting=None):
 
 if __name__ == "__main__":
     # force colab to get dataclasses
-    Task.add_requirements('dataclasses','0.4')
+    Task.add_requirements('dataclasses', '0.4')
     # override numpy version for colab
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
@@ -204,8 +207,8 @@ if __name__ == "__main__":
     train_aug = get_train_augmentations(aug_cfg, norm_setting=norm_info)
     valid_aug = get_valid_augmentations(None, norm_setting=norm_info)
     # get dataset id's
-    train_dataset_id = dataset_metadata.get('train',"")
-    valid_dataset_id = dataset_metadata.get('val',"")
+    train_dataset_id = dataset_metadata.get('train', "")
+    valid_dataset_id = dataset_metadata.get('val', "")
     if not len(train_dataset_id) or not len(valid_dataset_id):
         raise ValueError('Preprocess error: could not find'
                          f' datasets for image size {cfg.image_size}')

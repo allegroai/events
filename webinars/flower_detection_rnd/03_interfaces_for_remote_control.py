@@ -26,7 +26,8 @@ MODEL_NAME = os.path.basename(__file__)[:-3]
 # IMAGE_SIZE = 192
 # EPOCHS = 20
 
-@dataclass
+
+@dataclass  # <----
 class FlowerTrainingConfig:
     # For dataset, go to: https://www.kaggle.com/msheriey/104-flowers-garden-of-eden
     # original flower dataset id
@@ -58,6 +59,7 @@ class CustomTensorBoardLogger(tez.callbacks.TensorBoardLogger):
                 self.writer.add_scalar(
                     f"train_step/{metric}", model.metrics["train"][metric], model.current_train_step
                 )
+
 
 class FlowerModel(tez.Model):
     def __init__(self,
@@ -104,19 +106,19 @@ class FlowerModel(tez.Model):
 
 
 if __name__ == "__main__":
-    # force colab to get dataclasses
+    # force colab to get dataclasses # <---
     Task.add_requirements('dataclasses')
     # override numpy version for colab
     Task.add_requirements('numpy', '1.19.5')
     # Track everything on ClearML Free
     task = Task.init(project_name='R|D?R&D! Webinar 01',
                      task_name='remote control interface',
-                     output_uri=True, # auto save everything to Clearml Free
+                     output_uri=True,  # auto save everything to Clearml Free
                      )
 
     # task.connect(FlowerTrainingConfig, 'config')
     cfg = FlowerTrainingConfig()
-    task.connect(cfg, 'config')
+    task.connect(cfg, 'config')  # <---
 
     # Need to run on cpu only?
     device = "cuda" if torch.cuda.is_available() else "cpu"
