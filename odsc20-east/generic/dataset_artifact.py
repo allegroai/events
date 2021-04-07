@@ -1,4 +1,4 @@
-from trains import Task
+from clearml import Task
 
 # create an dataset experiment
 task = Task.init(project_name="ODSC20-east", task_name="dataset artifact")

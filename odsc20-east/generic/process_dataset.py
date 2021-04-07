@@ -1,5 +1,5 @@
 import pickle
-from trains import Task
+from clearml import Task
 from sklearn.model_selection import train_test_split
 
 

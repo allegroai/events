@@ -9,7 +9,7 @@ from absl import app
 from absl import flags
 from absl import logging
 
-from trains import Task
+from clearml import Task
 
 
 FLAGS = flags.FLAGS
