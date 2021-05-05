@@ -1,20 +1,21 @@
 from __future__ import print_function
-import argparse
-import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
 
+import argparse
+
+import keras
+from keras import backend as K
+from keras.datasets import mnist
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten
+from keras.models import Sequential
 
 parser = argparse.ArgumentParser(description='Keras mnist example')
-parser.add_argument('--batch_size', type=int, default=128, metavar="N",
-                    help='input batch size for training (default = 128)')
-parser.add_argument('--num_classes', type=int, default=10, metavar="N",
-                    help='input number of classes to be converted intro matrix (default = 10)')
-parser.add_argument('--epochs', type=int, default=12, metavar="N",
-                    help='input number of epochs to train (default = 12)')
+parser.add_argument('--batch_size', type=int, default=128,
+                    help='Batch size for training (default = %(default)s)')
+parser.add_argument('--num_classes', type=int, default=10,
+                    help='Number of classes to be converted intro matrix (default = %(default)s)')
+parser.add_argument('--epochs', type=int, default=12,
+                    help='Number of epochs to train (default = %(default)s)')
 args = parser.parse_args()
 
 # input image dimensions
