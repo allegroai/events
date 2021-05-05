@@ -1,14 +1,22 @@
 from __future__ import print_function
-import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
 
-batch_size = 128
-num_classes = 10
-epochs = 12
+import argparse
+
+import keras
+from keras import backend as K
+from keras.datasets import mnist
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten
+from keras.models import Sequential
+
+parser = argparse.ArgumentParser(description='Keras mnist example')
+parser.add_argument('--batch_size', type=int, default=128,
+                    help='Batch size for training (default = %(default)s)')
+parser.add_argument('--num_classes', type=int, default=10,
+                    help='Number of classes to be converted intro matrix (default = %(default)s)')
+parser.add_argument('--epochs', type=int, default=12,
+                    help='Number of epochs to train (default = %(default)s)')
+args = parser.parse_args()
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -34,8 +42,8 @@ print(x_train.shape[0], 'train samples')
 print(x_test.shape[0], 'test samples')
 
 # convert class vectors to binary class matrices
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+y_train = keras.utils.to_categorical(y_train, args.num_classes)
+y_test = keras.utils.to_categorical(y_test, args.num_classes)
 
 model = Sequential()
 model.add(Conv2D(32, kernel_size=(3, 3),
@@ -47,15 +55,15 @@ model.add(Dropout(0.25))
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(num_classes, activation='softmax'))
+model.add(Dense(args.num_classes, activation='softmax'))
 
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
 model.fit(x_train, y_train,
-          batch_size=batch_size,
-          epochs=epochs,
+          batch_size=args.batch_size,
+          epochs=args.epochs,
           verbose=1,
           validation_data=(x_test, y_test))
 score = model.evaluate(x_test, y_test, verbose=0)
